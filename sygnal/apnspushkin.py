@@ -507,23 +507,24 @@ class ApnsPushkin(ConcurrencyLimitedPushkin):
 
             loc_args = [from_display]
         elif n.type == "m.room.member":
-            if n.user_is_target:
-                if n.membership == "invite":
-                    if n.room_name:
-                        loc_key = "USER_INVITE_TO_NAMED_ROOM"
-                        loc_args = [
-                            from_display,
-                            n.room_name[0 : self.MAX_FIELD_LENGTH],
-                        ]
-                    elif n.room_alias:
-                        loc_key = "USER_INVITE_TO_NAMED_ROOM"
-                        loc_args = [
-                            from_display,
-                            n.room_alias[0 : self.MAX_FIELD_LENGTH],
-                        ]
-                    else:
-                        loc_key = "USER_INVITE_TO_CHAT"
-                        loc_args = [from_display]
+            loc_args = None
+            #if n.user_is_target:
+            #    if n.membership == "invite":
+            #        if n.room_name:
+            #            loc_key = "USER_INVITE_TO_NAMED_ROOM"
+            #            loc_args = [
+            #                from_display,
+            #                n.room_name[0 : self.MAX_FIELD_LENGTH],
+            #            ]
+            #        elif n.room_alias:
+            #            loc_key = "USER_INVITE_TO_NAMED_ROOM"
+            #            loc_args = [
+            #                from_display,
+            #                n.room_alias[0 : self.MAX_FIELD_LENGTH],
+            #            ]
+            #        else:
+            #            loc_key = "USER_INVITE_TO_CHAT"
+            #            loc_args = [from_display]
         elif n.type:
             # A type of message was received that we don't know about
             # but it was important enough for a push to have got to us
@@ -531,12 +532,14 @@ class ApnsPushkin(ConcurrencyLimitedPushkin):
             loc_args = [from_display]
 
         badge = None
-        if n.counts.unread is not None:
-            badge = n.counts.unread
-        if n.counts.missed_calls is not None:
-            if badge is None:
-                badge = 0
-            badge += n.counts.missed_calls
+
+        if loc_key is not None:
+            if n.counts.unread is not None:
+                badge = n.counts.unread
+            if n.counts.missed_calls is not None:
+                if badge is None:
+                    badge = 0
+                badge += n.counts.missed_calls
 
         if loc_key is None and badge is None:
             log.info("Nothing to do for alert of type %s", n.type)
